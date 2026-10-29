@@ -55,6 +55,28 @@ else
 fi
 
 echo
+echo "== 配置健康 =="
+if hyprctl version >/dev/null 2>&1; then
+  deprecated="$(hyprctl deprecated-config 2>/dev/null || true)"
+  if [ -z "$deprecated" ] || printf '%s' "$deprecated" | grep -q '^all good'; then
+    ok "没有废弃配置项"
+  else
+    warn "存在废弃配置项（hyprctl deprecated-config）："
+    printf '%s\n' "$deprecated"
+  fi
+
+  config_errors="$(hyprctl configerrors 2>/dev/null || true)"
+  if [ -z "$config_errors" ] || printf '%s' "$config_errors" | grep -qi '^no errors'; then
+    ok "没有配置错误"
+  else
+    warn "存在配置错误（hyprctl configerrors）："
+    printf '%s\n' "$config_errors"
+  fi
+else
+  warn "当前不在 Hyprland 会话，跳过配置健康检查"
+fi
+
+echo
 echo "== 字体 =="
 for font in "JetBrainsMono Nerd Font" "FantasqueSansM Nerd Font" "Fira Code"; do
   if fc-list 2>/dev/null | grep -qi "$font"; then

@@ -14,6 +14,10 @@
 - `UserConfigs/user_settings.lua`：键盘/触控板设置（`kb_model = "pc105"`）；额外加了
   `cursor.no_hardware_cursors = 1`（NVIDIA/混合显卡），替代原来对
   `lua/settings.lua` 的直接修改。
+- `lua/settings.lua`：以上游 v2.3.28 为基础 **整文件覆盖**，仅删除了
+  `dwindle.special_scale_factor = 0.8`。该选项在 Hyprland 0.57 中已废弃且不再
+  生效，保留会触发 “You are using 1 deprecated config option” 启动提示。上游
+  目前（main）仍未删除，升级后需要确认本文件是否重新包含该行。
 - `UserConfigs/user_decorations.lua`：采用上游 v2.3.28 的 wallust 动态边框颜色。
 - `UserConfigs/user_animations.lua`、`user_defaults.lua`：动画/默认行为。
 - `UserConfigs/user_laptops.lua`：采用上游 v2.3.28 的笔记本/外接显示器热插拔实现。
@@ -67,7 +71,7 @@
 
 | 上游文件 | 处理方式 | 原因 |
 |---|---|---|
-| `hypr/lua/settings.lua` | 在 `user_settings.lua` 里覆盖 `no_hardware_cursors` | 避免整文件 override，保留上游更新 |
+| `hypr/lua/settings.lua` 的其余内容 | 跟随上游；只在 overlay 里整文件 override 以删除废弃项 | `no_hardware_cursors` 等可覆盖项仍写在 `user_settings.lua` |
 | `hypr/scripts/MonitorWatcher.sh` | 暂不启动 | 与现有 `monitors.lua`（nwg-displays）冲突，迁移后再启用 |
 | `hypr/scripts/keybinds_parser.py` | v2.3.28 已删除，改用 `lua/keybind_index.lua` | 上游重构 |
 | `hypr/lua/keybinds.lua`、`keybind_helpers.lua` | v2.3.28 已删除 | 上游重构为 `window_actions.lua` |
