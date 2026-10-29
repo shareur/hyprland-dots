@@ -1,7 +1,7 @@
 # Base project this overlay is tested against.
 # Bump with ./update.sh <tag> and re-run ./install.sh.
 UPSTREAM_REPO=https://github.com/LinuxBeginnings/Hyprland-Dots.git
-UPSTREAM_REF=Hyprland-Dots-v2.3.27.7
+UPSTREAM_REF=Hyprland-Dots-v2.3.28
 
 # Used for a fresh Ubuntu install (packages + /usr/local builds).
 UBUNTU_INSTALLER_REPO=https://github.com/LinuxBeginnings/Ubuntu-Hyprland.git

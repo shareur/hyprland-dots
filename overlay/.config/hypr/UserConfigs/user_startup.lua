@@ -90,9 +90,14 @@ local exec_once = user_startup_helper.exec_once
 -- Add custom startup commands:
 local startup_commands = {
   "ags",
+  "blueman-applet",
   -- "kdeconnect-app",
-"blueman-applet",
   -- "$HOME/.config/hypr/UserScripts/RainbowBorders.sh",
+
+  -- MonitorWatcher is intentionally disabled on this machine: it would compete
+  -- with the nwg-displays -> monitors.conf loader in UserConfigs/monitors.lua.
+  -- Re-enable it after migrating that loader to the DisplayProfile system.
+  -- "$HOME/.config/hypr/scripts/MonitorWatcher.sh",
 }
 
 local function run_startup_commands()
@@ -106,6 +111,15 @@ if hl and hl.on then
 else
   run_startup_commands()
 end
+
+-- Laptop lid: user_laptops.lua owns clamshell behaviour and binds the lid
+-- switch itself, from the same UserConfigs/monitors.lua this system writes. So
+-- nothing is bound here: a second handler for one switch means whichever runs
+-- last wins, and which that is is not defined.
+--
+-- DisplayProfile.sh still honours the lid when it applies a layout (it switches
+-- the internal panel off only while an external monitor is on), so a layout
+-- applied with the lid shut does not light the panel back up.
 
 -- BEGIN ubuntu-bootstrap fcitx5-startup
 exec_once("fcitx5 -d")

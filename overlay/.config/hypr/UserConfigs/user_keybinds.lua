@@ -55,41 +55,89 @@
 --
 -- =============================================================================
 local user_keybinds_helper = nil
+local submap_helper = nil
 do
   local source = (debug.getinfo(1, "S") or {}).source or ""
   local source_path = source:match("^@(.+)$")
   local source_dir = source_path and source_path:match("^(.*)/[^/]+$") or nil
   local home = os.getenv("HOME") or ""
-  local candidate_paths = {
-    source_dir and (source_dir .. "/../lua/user_keybinds_helper.lua") or nil,
-    home ~= "" and (home .. "/.config/hypr/lua/user_keybinds_helper.lua") or nil,
-    home ~= "" and (home .. "/.config/hypr/user_keybinds_helper.lua") or nil,
-  }
 
-  local tried_paths = {}
-  for _, helper_path in ipairs(candidate_paths) do
-    if helper_path then
-      table.insert(tried_paths, helper_path)
-      local f = io.open(helper_path, "r")
-      if f then
-        f:close()
-        local loaded_ok, loaded_helpers = pcall(dofile, helper_path)
-        if loaded_ok and type(loaded_helpers) == "table" and loaded_helpers.bind then
-          user_keybinds_helper = loaded_helpers
-          break
+  -- Load a helper module from the first candidate path that defines what we
+  -- expect. Each helper is loaded exactly once, so a local copy always wins
+  -- over the shipped template and no module is executed twice.
+  local function load_helper(file_name, validate)
+    local candidate_paths = {
+      source_dir and (source_dir .. "/../lua/" .. file_name) or nil,
+      home ~= "" and (home .. "/.config/hypr/lua/" .. file_name) or nil,
+      home ~= "" and (home .. "/.config/hypr/" .. file_name) or nil,
+    }
+
+    local tried_paths = {}
+    for _, helper_path in ipairs(candidate_paths) do
+      if helper_path then
+        table.insert(tried_paths, helper_path)
+        local f = io.open(helper_path, "r")
+        if f then
+          f:close()
+          local loaded_ok, loaded_helpers = pcall(dofile, helper_path)
+          if loaded_ok and type(loaded_helpers) == "table" and validate(loaded_helpers) then
+            return loaded_helpers
+          end
         end
       end
     end
+
+    return nil, tried_paths
   end
 
+  local tried_paths
+  user_keybinds_helper, tried_paths = load_helper("user_keybinds_helper.lua", function(helpers)
+    return helpers.bind ~= nil
+  end)
   if not user_keybinds_helper then
-    error("Failed to load user_keybinds_helper.lua from: " .. table.concat(tried_paths, ", "))
+    error("Failed to load user_keybinds_helper.lua from: " .. table.concat(tried_paths or {}, ", "))
   end
+
+  -- submap_helper is optional: a missing or broken file must not take down all
+  -- user keybinds, so it degrades to a warning and the keybinds below still load.
+  submap_helper = load_helper("submap_helper.lua", function(helpers)
+    return helpers.submap ~= nil
+  end)
 end
+
 local exec_cmd = user_keybinds_helper.exec_cmd
 local dispatch = user_keybinds_helper.dispatch
 local bind = user_keybinds_helper.bind
 local unbind = user_keybinds_helper.unbind
+local submap = submap_helper and submap_helper.submap or nil
+if not submap then
+  print("[WARN] submap_helper.lua was not found; the submap.* helpers are unavailable. "
+    .. "Copy config/hypr/lua/submap_helper.lua to ~/.config/hypr/lua/ to enable them.")
+end
+
+-- =============================================================================
+-- DISPLAY LAYOUTS
+-- =============================================================================
+-- SUPER+ALT+D opens the layout menu for the monitor set in front of you.
+-- SUPER+ALT+W applies a layout named Work directly, which is also the fallback
+-- for when rofi will not start. Both combos were free: SUPER+ALT+H and
+-- SUPER+ALT+P are taken by "horizontal scroll right" and the KB-passthrough
+-- submap.
+bind(
+  "SUPER ALT",
+  "D",
+  exec_cmd("$HOME/.config/hypr/scripts/DisplayProfileMenu.sh"),
+  { description = "Display layouts: menu for this monitor set" }
+)
+bind(
+  "SUPER ALT",
+  "W",
+  -- A bare layout name is the controller's "apply this layout" verb, passed
+  -- after -- so a name that looks like an option stays data. Create a layout
+  -- called Work (menu -> Edit parameters) and this key applies it.
+  exec_cmd("$HOME/.config/hypr/scripts/DisplayProfile.sh -- Work"),
+  { description = "Display layouts: apply the layout named Work" }
+)
 
 -- >>> ubuntu-bootstrap local keybind overrides >>>
 -- Local keybind policy managed by ubuntu-bootstrap.
@@ -102,10 +150,3 @@ bind("ALT", "C", exec_cmd("code"), { description = "Visual Studio Code" })
 bind("ALT", "V", exec_cmd("$HOME/.config/hypr/scripts/ClipManager.sh"), { description = "clipboard manager" })
 bind("ALT", "K", exec_cmd("$HOME/.config/hypr/scripts/KeyBinds.sh"), { description = "search keybinds" })
 -- <<< ubuntu-bootstrap local keybind overrides <<<
-
-
-
-
-
-
-
