@@ -66,3 +66,44 @@ diff -u /tmp/upstream-hyprlock.conf overlay/.config/hypr/hyprlock.conf
 如果确实需要修改上游文件，优先用 `UserConfigs/user_*.lua` 覆盖；
 只有当配置项没有用户覆盖入口时，才把整个文件放进 `overlay/` 并在
 [`personal-changes.md`](personal-changes.md) 里记一笔。
+
+## 五、手动同步方式（2026-10-29 实际采用）
+
+如果不想跑上游的交互式 `copy.sh`，可以手动同步，步骤可控：
+
+```bash
+REF=Hyprland-Dots-v2.3.28
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/hyprland-dots/upstream-$REF"
+
+git clone --depth 1 --branch "$REF" --filter=blob:none --sparse \
+  https://github.com/LinuxBeginnings/Hyprland-Dots.git "$CACHE"
+git -C "$CACHE" sparse-checkout set config
+
+# 先备份
+tar -czf "$HOME/hypr-config-$(date +%Y%m%d-%H%M%S).tar.gz" \
+  "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/ghostty"
+
+# 同步上游，保留 wallust/运行时生成文件
+rsync -a \
+  --exclude 'hypr/wallust/wallust-hyprland.conf' \
+  --exclude 'hypr/rofi/wallust/colors-rofi.rasi' \
+  --exclude 'hypr/waybar/wallust/colors-waybar.css' \
+  --exclude 'hypr/UserConfigs/kitty-themes/01-Wallust.conf' \
+  --exclude 'hypr/wallpaper_effects/' \
+  --exclude 'quickshell/qml_color.json' \
+  --exclude 'nwg-dock-hyprland/wallust/colors-wallust.css' \
+  "$CACHE/config/" "$HOME/.config/"
+
+# 恢复个人覆盖层
+cd ~/Projects/hyprland-dots && ./install.sh
+
+# 清理上游删除的文件（按两个 tag 的 diff 列出 D 项）
+git -C "$CACHE" diff --name-status "$OLD_REF" "$REF" -- config/hypr | grep '^D'
+
+hyprctl reload
+hyprctl configerrors
+```
+
+本次升级已删除的旧文件包括：`LuaAutoReload.sh`、`LuaCycleWindow.sh`、
+`LayoutKeybindDispatch.sh`、`keybinds_parser.py`、`lua/keybinds.lua`、
+`lua/keybind_helpers.lua` 等。
