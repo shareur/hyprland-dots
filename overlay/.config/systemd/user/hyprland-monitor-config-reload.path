@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch nwg-displays monitor configuration
+
+[Path]
+PathChanged=%h/.config/hypr/monitors.conf
+Unit=hyprland-monitor-config-reload.service
+
+[Install]
+WantedBy=default.target
