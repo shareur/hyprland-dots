@@ -62,6 +62,7 @@ cd ~/Projects/hyprland-dots
     ├── fresh-ubuntu.md     # 全新安装步骤
     ├── upstream-update.md  # 跟随上游更新
     ├── personal-changes.md # 个人修改清单
+    ├── known-issues.md     # 已知问题（未解决）
     └── monitors.md         # 显示器布局
 ```
 
@@ -99,6 +100,11 @@ git commit -m "tweak: ..."
 - 中文输入法使用 **清风输入法（WindInput）**，它不在 apt 源里，需要从
   [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 下载 `.deb`
   安装；步骤见 [`docs/fresh-ubuntu.md`](docs/fresh-ubuntu.md#4-输入法fcitx5--清风输入法)。
+
+## 已知问题
+
+- 开机到登录界面、登录到桌面各有一段数秒黑屏。已记录测量数据和此前无效的
+  修复尝试：[`docs/known-issues.md`](docs/known-issues.md)。目前暂不修复。
 
 ## 致谢
 
