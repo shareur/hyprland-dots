@@ -45,6 +45,9 @@ chmod +x install.sh capture.sh update.sh doctor.sh assets/*.sh
 ./install.sh
 ```
 
+> 安装脚本按当前用户的 `$HOME` 写入，不需要在文档或脚本里填写用户名。
+> 文中的 `<你的用户名>` 仅指 GitHub 账号；`/home/<user>` 只是路径占位符。
+
 ## 3. 安装字体、图标、主题、壁纸
 
 ```bash
