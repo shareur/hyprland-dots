@@ -1,0 +1,13 @@
+[input.emoji]
+enabled = true
+
+[keys]
+key_actions_materialized = 1
+
+[keys.key_actions]
+backtick = "temp_pinyin"
+semicolon = "mix:quick_mix"
+
+[schema]
+active = "shuangpin"
+available = ["shuangpin"]

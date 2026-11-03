@@ -61,6 +61,7 @@ diff -u /tmp/upstream-hyprlock.conf overlay/.config/hypr/hyprlock.conf
 - `wallust-hyprland.conf`、`colors-*.css/.rasi`、`qml_color.json`
 - `wallpaper_effects/`、`.current_wallpaper*`
 - `monitors.conf`（机器相关）
+- `hypr/UserConfigs/workspaces.lua`（`PersistWorkspaceLayout.sh` 生成的机器状态）
 - `hypr/UserConfigs/kitty-themes/01-Wallust.conf`
 
 如果确实需要修改上游文件，优先用 `UserConfigs/user_*.lua` 覆盖；

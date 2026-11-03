@@ -29,6 +29,18 @@ need_cmd kitty "kitty"
 need_cmd fcitx5 "fcitx5"
 
 echo
+echo "== 输入法 =="
+if dpkg -s windinput >/dev/null 2>&1; then
+  ok "WindInput（清风输入法）"
+else
+  warn "未安装 windinput（可选；见 docs/fresh-ubuntu.md）"
+fi
+for f in "$HOME/.config/fcitx5/profile" "$HOME/.config/fcitx5/config" \
+         "$HOME/.config/WindInput/config.toml"; do
+  if [ -f "$f" ]; then ok "$f"; else warn "缺少 $f（运行 ./install.sh）"; fi
+done
+
+echo
 echo "== 配置文件 =="
 for f in \
   "$HOME/.config/hypr/hyprland.lua" \
@@ -50,7 +62,7 @@ else
   if [ "${minor:-0}" -ge 55 ]; then
     ok "Hyprland $ver（支持 Lua 配置）"
   else
-    fail "Hyprland $ver 太旧，Lua 配置需要 >= 0.55（推荐 0.56.x）"
+    fail "Hyprland $ver 太旧，Lua 配置需要 >= 0.55（推荐 0.57.x）"
   fi
 fi
 
@@ -97,8 +109,27 @@ echo "== 壁纸 =="
 [ -d "$HOME/Pictures/wallpapers" ] && ok "$HOME/Pictures/wallpapers" || warn "缺少壁纸目录（assets/wallpapers.sh）"
 
 echo
+echo "== Waybar 服务 =="
+if command -v systemctl >/dev/null 2>&1; then
+  if systemctl --user is-enabled waybar.service >/dev/null 2>&1; then
+    ok "waybar.service 已启用"
+  else
+    warn "waybar.service 未启用（./install.sh 会执行 systemctl --user enable waybar.service）"
+  fi
+  if systemctl --user is-active waybar.service >/dev/null 2>&1; then
+    ok "waybar.service 运行中"
+  else
+    warn "waybar.service 当前未运行（重新登录后再检查）"
+  fi
+else
+  warn "找不到 systemctl，跳过 waybar.service 检查"
+fi
+
+echo
 echo "== 可移植性 =="
-bad_links="$(find "$HOME/.config/hypr" -type l -lname '/home/*' 2>/dev/null || true)"
+# .current_wallpaper* point at the active wallpaper by design (runtime state).
+bad_links="$(find "$HOME/.config/hypr" -type l -lname '/home/*' \
+  ! -name '.current_wallpaper*' 2>/dev/null || true)"
 if [ -n "$bad_links" ]; then
   warn "存在绝对路径软链，换用户名会断："
   printf '%s\n' "$bad_links"

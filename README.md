@@ -7,7 +7,7 @@
 这样既能保持“一套配置到处用”，又不会因为 fork 整个仓库而难以跟进上游更新。
 
 - 上游锁定版本：见 [`upstream.lock`](upstream.lock)
-- 当前验证环境：Ubuntu 26.04 LTS + Hyprland 0.56.2（`ppa:cppiber/hyprland`）
+- 当前验证环境：Ubuntu 26.04 LTS + Hyprland 0.57.0（`ppa:cppiber/hyprland`）
 - 许可证：GPL-3.0（继承上游）
 
 ## 快速开始（新 Ubuntu）
@@ -48,13 +48,15 @@ cd ~/Projects/hyprland-dots
 │   │   ├── hypr/           # UserConfigs / UserScripts / 个人覆盖文件
 │   │   ├── kitty/ ghostty/ cava/ ags/
 │   │   ├── gtk-3.0/ gtk-4.0/ nwg-look/
+│   │   ├── fcitx5/ WindInput/（输入法设置，不含词库）
 │   │   ├── environment.d/ autostart/ systemd/user/
 │   │   └── mimeapps.list user-dirs.dirs ...
 │   ├── .zshrc .zprofile .tmux.conf
 ├── assets/
 │   ├── fonts.sh            # Nerd Fonts（JetBrainsMono / Fantasque / VictorMono）
 │   ├── gtk-themes-icons.sh # Flat-Remix + Bibata
-│   └── wallpapers.sh       # 上游壁纸库，或从旧盘复制
+│   ├── wallpapers.sh       # 上游壁纸库，或从旧盘复制
+│   └── windinput.sh        # 清风输入法 .deb（从 GitHub Releases）
 ├── packages/apt-extra.txt  # 上游安装器没覆盖到的额外包
 └── docs/
     ├── fresh-ubuntu.md     # 全新安装步骤
@@ -90,10 +92,13 @@ git commit -m "tweak: ..."
 
 ## 已知前提
 
-- 配置是 **Hyprland Lua 格式**，需要 Hyprland >= 0.55，推荐 0.56.x。
+- 配置是 **Hyprland Lua 格式**，需要 Hyprland >= 0.55，推荐 0.57.x。
 - Waybar / Quickshell / wallust / awww 由上游 Ubuntu 安装器编译到
   `/usr/local/bin`，不是 apt 包。
 - 需要 `fcitx5`、`Fira Code`、Nerd Fonts；`doctor.sh` 会逐项检查。
+- 中文输入法使用 **清风输入法（WindInput）**，它不在 apt 源里，需要从
+  [GitHub Releases](https://github.com/huanfeng/WindInput/releases) 下载 `.deb`
+  安装；步骤见 [`docs/fresh-ubuntu.md`](docs/fresh-ubuntu.md#4-输入法fcitx5--清风输入法)。
 
 ## 致谢
 

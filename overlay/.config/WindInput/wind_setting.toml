@@ -1,0 +1,23 @@
+[theme_editor]
+auto_start = false
+
+[update]
+network_consent = false
+auto_check = true
+skipped_version = ""
+last_check_at = 0
+
+[ui]
+hide_disabled_schemas = false
+show_hidden_schemas = false
+wizard_dismissed = true
+show_custom_hidden_settings = false
+
+[protocol]
+self_heal = true
+
+[file_assoc]
+self_heal = true
+
+[log]
+level = "info"

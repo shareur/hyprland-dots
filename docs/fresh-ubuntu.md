@@ -13,7 +13,7 @@
 
 ## 1. 安装系统依赖 + 上游 KoolDots
 
-用上游官方安装器（会安装 Hyprland 0.56.x PPA、编译 waybar/quickshell/wallust/awww、安装字体和图标等）：
+用上游官方安装器（会安装 Hyprland 0.57.x PPA、编译 waybar/quickshell/wallust/awww、安装字体和图标等）：
 
 ```bash
 sudo apt update
@@ -60,12 +60,36 @@ chmod +x install.sh capture.sh update.sh doctor.sh assets/*.sh
 
 壁纸路径固定为 `~/Pictures/wallpapers`，因为上游脚本这样引用。
 
-## 4. 显示器布局
+## 4. 输入法（fcitx5 + 清风输入法）
+
+`./install.sh` 已经会写入 `~/.config/fcitx5/` 和 `~/.config/WindInput/`
+（输入法组为 `rime` + `windinput`，默认 `windinput`），还需要安装引擎：
+
+```bash
+sudo apt install -y fcitx5 fcitx5-rime fcitx5-config-qt \
+  fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 \
+  fcitx5-frontend-qt5 fcitx5-frontend-qt6
+
+# WindInput / 清风输入法不在 apt 源里，用脚本从 GitHub Releases
+# 取最新版、校验 sha256 后安装：
+./assets/windinput.sh
+
+# 或者手动下载 .deb：
+#   https://github.com/huanfeng/WindInput/releases
+#   sudo apt install ./WindInput-<版本>-linux-amd64.deb
+```
+
+注销重登后运行 `fcitx5-configtool` 确认「清风输入法」在输入法列表中。
+
+> Rime 的用户词库/方案在 `~/.local/share/fcitx5/rime`（本机约 211MB），
+> 不属于 dotfiles。需要保留个人词库时从旧盘复制该目录。
+
+## 5. 显示器布局
 
 `monitors.conf` 与机器相关，没有进仓库。装好后用 `nwg-displays` 生成，
 或者从旧机器复制后改输出名。详见 [`monitors.md`](monitors.md)。
 
-## 5. 验证
+## 6. 验证
 
 ```bash
 ./doctor.sh
@@ -79,10 +103,11 @@ chmod +x install.sh capture.sh update.sh doctor.sh assets/*.sh
 
 ## 常见问题
 
-- **Hyprland 起不来 / Lua 配置报错**：确认版本是 0.56.x（`hyprctl version`）。
+- **Hyprland 起不来 / Lua 配置报错**：确认版本是 0.57.x（`hyprctl version`）。
   Ubuntu 官方源的 0.53.3 不支持 Lua 配置，必须用 `ppa:cppiber/hyprland`。
 - **Waybar 不显示**：确认 `/usr/local/bin/waybar` 存在，且
-  `~/.config/hypr/waybar/config` 软链指向 `configs/TOP-Default`。
+  `~/.config/hypr/waybar/config` 软链指向 `configs/TOP-Default`；再检查
+  `systemctl --user status waybar.service`（`./install.sh` 会启用该服务）。
 - **中文字体/输入法**：`fcitx5 -d` 会由 `user_startup.lua` 启动；确认
   `environment.d/90-fcitx5.conf` 已生效。
 - **终端字体不对**：kitty 使用 `~/.config/hypr/UserConfigs/kitty.conf`

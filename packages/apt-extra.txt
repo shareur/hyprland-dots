@@ -13,6 +13,12 @@ fcitx5-frontend-gtk4
 fcitx5-frontend-qt5
 fcitx5-frontend-qt6
 
+# WindInput / 清风输入法 is NOT in apt (installed from a .deb manually):
+#   https://github.com/huanfeng/WindInput/releases
+#   sudo apt install ./WindInput-<version>-linux-amd64.deb
+# It depends on fcitx5 and fonts-noto-cjk. The overlay ships
+# ~/.config/fcitx5/{profile,config} with WindInput enabled.
+
 # Fonts used by GTK/Qt/terminal/UI
 fonts-firacode
 fonts-open-sans

@@ -6,6 +6,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OVERLAY="$REPO_DIR/overlay"
 HOME_DIR="${HOME:?}"
+command -v python3 >/dev/null || { echo "需要 python3 来规范化软链" >&2; exit 1; }
 
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
@@ -20,16 +21,15 @@ TRACKED=(
   ".config/kitty"
   ".config/ghostty/config"
   ".config/cava"
-  ".config/ags"
+  ".config/ags/user"
   ".config/systemd/user"
   ".config/gtk-3.0"
   ".config/gtk-4.0"
-  ".config/qt5ct"
-  ".config/qt6ct"
-  ".config/Kvantum"
   ".config/nwg-look"
   ".config/environment.d"
   ".config/autostart"
+  ".config/fcitx5"
+  ".config/WindInput"
   ".config/mimeapps.list"
   ".config/user-dirs.dirs"
   ".config/pavucontrol.ini"
@@ -54,23 +54,51 @@ for rel in "${TRACKED[@]}"; do
     continue
   fi
   mkdir -p "$(dirname "$dst")"
-  if [ -d "$src" ]; then
+  if [ -d "$src" ] && [ ! -L "$src" ]; then
     args=(-a --delete)
     case "$rel" in
       .config/hypr/UserConfigs)
-        args+=(--exclude 'kitty-themes/' --exclude '00-Readme') ;;
+        args+=(--exclude 'kitty-themes/' --exclude '00-Readme' \
+               --exclude 'LegacyConfigs/' --exclude 'display-layouts.json' \
+               --exclude 'workspaces.lua') ;;
       .config/systemd/user)
         args+=(--exclude 'default.target.wants/') ;;
       .config/gtk-3.0)
         args+=(--exclude 'bookmarks') ;;
+      .config/fcitx5)
+        args+=(--exclude 'conf/cached_layouts') ;;
+      .config/WindInput)
+        args+=(--exclude 'data/' --exclude 'logs/') ;;
     esac
     rsync "${args[@]}" "$src/" "$dst/"
   else
+    # Replace instead of following an existing symlink (e.g. waybar.service
+    # used to be a -> /dev/null placeholder in the overlay).
+    rm -f "$dst"
     cp -a "$src" "$dst"
   fi
 done
 
 if [ "$DRY_RUN" -eq 0 ]; then
+  # Rewrite absolute /home/<user> symlinks (systemd .wants, etc.) to relative
+  # ones so the overlay still works if the username changes.
+  while IFS= read -r -d '' link; do
+    target="$(readlink "$link")"
+    case "$target" in
+      "$HOME"/*)
+        # Point at the overlay copy (not the live $HOME file), so the link
+        # survives a different username or clone location. uutils realpath
+        # (Ubuntu 26.04) miscomputes --relative-to, so use Python instead.
+        mapped="$OVERLAY/${target#"$HOME"/}"
+        [ -e "$mapped" ] || mapped="$target"
+        rel_target="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' \
+          "$mapped" "$(dirname "$link")")"
+        ln -sfn "$rel_target" "$link"
+        info "relink ${link#"$OVERLAY"/} -> $rel_target"
+        ;;
+    esac
+  done < <(find "$OVERLAY" -type l -print0)
+
   # Keep waybar selections portable instead of absolute /home/<user> links.
   for f in config style.css; do
     link="$HOME_DIR/.config/hypr/waybar/$f"

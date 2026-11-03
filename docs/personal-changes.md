@@ -21,15 +21,19 @@
 - `UserConfigs/user_decorations.lua`：采用上游 v2.3.28 的 wallust 动态边框颜色。
 - `UserConfigs/user_animations.lua`、`user_defaults.lua`：动画/默认行为。
 - `UserConfigs/user_laptops.lua`：采用上游 v2.3.28 的笔记本/外接显示器热插拔实现。
-- `UserConfigs/workspaces.lua`：按 `HDMI-A-1` 分配的 workspace 布局，
-  换显示器后需要调整。
+- `UserConfigs/workspaces.lua`：**不进仓库**。它由
+  `PersistWorkspaceLayout.sh` 按当前显示器运行时写入，属于机器状态；
+  当前系统里为空（没有自定义 workspace 规则），新机器会自行生成。
 - `UserConfigs/monitors.lua`：读取 `~/.config/hypr/monitors.conf`，让
   `nwg-displays` 生成的布局可以直接生效。
 - `UserConfigs/user_window_rules.lua`、`user_layer_rules.lua`。
 - `UserConfigs/kitty.conf`、`ghostty.conf`、`hyprview-layout.conf`。
 - `UserScripts/`：个人脚本目录（当前与上游一致，保留作为扩展位）。
 - `hyprlock.conf`：锁屏天气缓存刷新改为 1 小时（其余已与上游 v2.3.28 一致）。
-- `hypridle.conf`：保留旧版行为（休眠/唤醒后不重新拉起 WallpaperDaemon）。
+- `hypridle.conf`：保留旧版行为（休眠/唤醒后不重新拉起 WallpaperDaemon）；
+  同时**注释掉 12 分钟自动关屏的 DPMS listener**。Hyprlock <= 0.9.6 在
+  锁屏期间被 Hyprland 关屏时会崩溃，并把整个合成器一起带走
+  （hyprwm/hyprlock#991）；上游修复前保持关闭，锁屏仍会按 5 分钟超时生效。
 - `scripts/DarkLight.sh`、`scripts/ApplyThemeMode.sh`：个人新增脚本。
 - `waybar/config -> configs/TOP-Default`、`style.css -> style/Extra-Arrow.css`：
   使用相对软链，换用户名不会断。
@@ -51,14 +55,21 @@
 ## 桌面集成
 
 - `systemd/user/hyprland-monitor-config-reload.{path,service}`：显示器配置热重载。
-- `systemd/user/waybar.service -> /dev/null`：禁用 waybar 的 systemd 服务，
-  由 `WaybarStartup.sh` 管理，避免双实例。
+- `systemd/user/waybar.service`：**重新启用**的完整 unit（不再是 `-> /dev/null`）。
+  `graphical-session.target.wants/waybar.service` 使用相对软链，登录后由
+  systemd 启动；`waybar.service.d/override.conf` 把 `ExecStart` 指向
+  `~/.config/hypr/waybar/{config,style.css}`。`WaybarStartup.sh` 不再负责启动。
 - `systemd/user/*.service.d/override.conf`：portal / polkit 的启动顺序覆盖。
 - `gtk-3.0/settings.ini`、`gtk-4.0/settings.ini`：Flat-Remix GTK、Flat-Remix 图标、
   Bibata 光标、Fira Code 14。
 - `nwg-look/`：GTK 外观设置。`qt5ct/`、`qt6ct/`、`Kvantum/` 与上游完全一致，
   因此不放进 overlay，避免冻结上游更新。
 - `environment.d/90-fcitx5.conf`：fcitx5 输入法环境变量。
+- `fcitx5/`：输入法全局设置与输入法组（`rime` + `windinput`，默认
+  `windinput`）。**不包含** `~/.config/fcitx5/conf/cached_layouts` 缓存。
+- `WindInput/`：清风输入法的用户设置（方案 `shuangpin`、按键动作等）。
+  **不包含** `data/` 用户词库/短语；`~/.local/share/fcitx5/rime`（约 211MB）
+  也属于用户数据，需要时从旧盘单独复制。
 - `autostart/`、`mimeapps.list`、`user-dirs.dirs`、`pavucontrol.ini`。
 
 ## Shell
@@ -76,13 +87,25 @@
 | `hypr/scripts/keybinds_parser.py` | v2.3.28 已删除，改用 `lua/keybind_index.lua` | 上游重构 |
 | `hypr/lua/keybinds.lua`、`keybind_helpers.lua` | v2.3.28 已删除 | 上游重构为 `window_actions.lua` |
 | `hypr/monitors.conf` | 不进仓库，提供 `docs/monitors.md` | 显示器输出名/分辨率因机器而异 |
-| `hypr/workspaces.conf` | 不进仓库 | `PersistWorkspaceLayout.sh` 生成的状态文件，实际规则在 `UserConfigs/workspaces.lua` |
+| `hypr/workspaces.conf`、`UserConfigs/workspaces.lua` | 不进仓库（已加入 `.gitignore`） | 都由 `PersistWorkspaceLayout.sh` 按当前显示器运行时生成 |
 | `wallust-*.conf`、`colors-*.{css,rasi}`、`qml_color.json` | 不进仓库 | wallust 根据当前壁纸生成 |
 | `hypr/rofi/.current_wallpaper*`、`wallpaper_effects/` | 不进仓库 | 运行时状态 |
 | `kitty-themes/`、`fastfetch/`、`wlogout/`、`qt5ct/`、`qt6ct/`、`Kvantum/` 等 | 跟随上游 | 与上游完全一致，没必要重复保存 |
 | `ags/`（除 `user/style.css`） | 跟随上游 | 只有颜色路径需要修正 |
 
 ## 升级记录
+
+### 2026-11-03 — 与运行中系统对齐
+
+- `hypridle.conf`：同步系统当前的改动，注释掉自动关屏 DPMS listener。
+- `systemd/user/waybar.service`：系统已在 2026-11-01 重新启用 systemd 服务，
+  overlay 从 `-> /dev/null` 改为真实 unit，并加入相对软链
+  `graphical-session.target.wants/waybar.service`。
+- `workspaces.lua`：系统当前为空且由 `PersistWorkspaceLayout.sh` 生成，
+  从 overlay 移除并加入 `.gitignore`；`capture.sh` 同步排除。
+- 新增 `fcitx5/`、`WindInput/` 用户配置（排除缓存和词库数据）。
+- `capture.sh`：修复“目标已是软链时无法覆盖”、错误地把上游文件带进
+  `UserConfigs`、以及绝对 `$HOME` 软链不可移植的问题。
 
 ### 2026-10-29 — v2.3.27.7 → v2.3.28
 

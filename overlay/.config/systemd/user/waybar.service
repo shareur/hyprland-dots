@@ -1,1 +1,23 @@
-/dev/null
+[Unit]
+Description=Waybar status bar
+Documentation=https://github.com/Alexays/Waybar
+PartOf=graphical-session.target
+After=graphical-session.target
+# Never give up: on a cold login the first start can race the import of
+# WAYLAND_DISPLAY/HYPRLAND_INSTANCE_SIGNATURE into the user manager.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+# waybar.service.d/override.conf clears this and sets the same command; it is
+# duplicated here so the unit still works if that drop-in is removed.
+ExecStart=/usr/bin/env waybar -c %h/.config/hypr/waybar/config -s %h/.config/hypr/waybar/style.css
+Restart=on-failure
+RestartSec=2
+Environment=GDK_BACKEND=wayland
+# Keep Waybar's output in the journal so a startup crash is diagnosable.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=graphical-session.target

@@ -81,12 +81,12 @@ check_hyprland_version() {
   }
   local ver major minor
   ver="$(hyprctl version 2>/dev/null | sed -n 's/^Hyprland \([0-9][0-9.]*\).*/\1/p' | head -n1)"
-  [ -n "$ver" ] && info "检测到 Hyprland $ver（Lua 配置需要 >= 0.55，推荐 0.56.x）"
+  [ -n "$ver" ] && info "检测到 Hyprland $ver（Lua 配置需要 >= 0.55，推荐 0.57.x）"
   major="${ver%%.*}"
   minor="$(printf '%s' "$ver" | cut -d. -f2)"
   if [ -n "${major:-}" ] && [ -n "${minor:-}" ]; then
     if [ "$major" -eq 0 ] && [ "$minor" -lt 55 ]; then
-      warn "Hyprland $ver 可能无法加载本仓库的 Lua 配置，请使用 cppiber/hyprland PPA 的 0.56.x"
+      warn "Hyprland $ver 可能无法加载本仓库的 Lua 配置，请使用 cppiber/hyprland PPA 的 0.57.x"
     fi
   fi
 }
@@ -148,6 +148,9 @@ if [ "$DRY_RUN" -eq 0 ]; then
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user daemon-reload 2>/dev/null || true
     systemctl --user enable --now hyprland-monitor-config-reload.path 2>/dev/null || true
+    # The overlay ships a real waybar.service plus a relative
+    # graphical-session.target.wants link; keep it enabled on upgrades too.
+    systemctl --user enable waybar.service 2>/dev/null || true
   fi
 fi
 

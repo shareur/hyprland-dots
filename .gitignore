@@ -14,6 +14,8 @@ overlay/.config/kitty/kitty.conf.bak
 
 # Machine-specific monitor layout (use monitors.conf.example)
 overlay/.config/hypr/monitors.conf
+# Runtime workspace layout written by PersistWorkspaceLayout.sh
+overlay/.config/hypr/UserConfigs/workspaces.lua
 
 # Local caches / assets
 assets/cache/
